@@ -12,6 +12,7 @@ class Unit:
         self.origin = origin
         self.trait = trait
         self.origin2 = origin2
+        self.trait_list = [origin, origin2, trait]
         self.chosen = False
         self.chosenbuff = None
 
@@ -97,7 +98,6 @@ def main():
             five_costs.append(Unit("zillean" + str(i), "zillean", 5, "cultist", "mystic"))
 
     unit_pool = [one_costs, two_costs, three_costs, four_costs, five_costs]
-    pity_timer = 0
 
     # function for rolling a chosen unit DOES NOT CHOOSE CHOSEN TRAIT
     def chosen_helper(units):
@@ -112,8 +112,8 @@ def main():
         chosen.chosen = True
         return chosen
 
-    # rolling function with scaling pity timer. ONLY FOR LEVEL 7
-    def roll(u_pool, p_timer):
+    # rolling function without pity timer. ONLY FOR LEVEL 7
+    def roll(u_pool):
         """
         simulate roll.
         chosen odds, then cost odds, then random unit.
@@ -126,13 +126,13 @@ def main():
         for counter in range(5):
             # if chosen is available
             if shop_chosen:
-                chosen_unit = bool(random.choices([0, 1], weights=(80 - p_timer, 20 + p_timer))[0])
+                chosen_unit = bool(random.choices([0, 1], weights=(93, 7))[0])
                 if chosen_unit:
                     shop_chosen = False
                     units.append(chosen_helper(u_pool))
 
                 else:
-                    # normal unit which ups the pity timer
+                    # normal unit
                     unit_cost = random.choices(u_pool, weights=(19, 35, 30, 15, 1))[0]
                     units.append(random.choice(unit_cost))
             else:
@@ -144,9 +144,9 @@ def main():
     # going for just dusk riven
     acceptable_chosens = ["aatrox", "cassiopea", "jhin", "riven"]
 
-    # going for any transitionw
-    # acceptable_chosens = ["irelia", "jinx", "nunu", "veigar", "yuumi", "aatrox", "ahri", ashe", "cass", "jhin",
-    # "morg", "riven", "sej", "shen", "talon", "warwick"]
+    # going for any transition
+    # acceptable_chosens = ["irelia", "jinx", "nunu", "veigar", "yuumi", "aatrox", "ahri",
+    #                       "ashe", "cass", "jhin", "morg", "riven", "sej", "shen", "talon", "warwick"]
 
     gold_needed = []
     # execute simulation
@@ -156,13 +156,11 @@ def main():
         gold_spent = 0
         dusk_found = False
         while gold_spent < 1000:
-            shop = roll(unit_pool, pity_timer)
+            shop = roll(unit_pool)
             gold_spent += 2
             for unit in shop:
                 # checks if a chosen is in the shop and resets the unit for the next roll
                 if unit.chosen:
-                    # checks
-                    pity_timer = 0
                     if unit.name in acceptable_chosens:
                         dusk_found = True
                         unit.chosen = False
@@ -170,8 +168,6 @@ def main():
                     # not the right chosen unit
                     else:
                         unit.chosen = False
-            # no chosen found so increased chance on next roll
-            pity_timer += 1
             if dusk_found:
                 break
         gold_needed.append(gold_spent)
@@ -179,6 +175,7 @@ def main():
     # print results
     print("trials: ", num_trials)
     print("acceptable chosens: ", acceptable_chosens)
+    print(gold_needed.count(2))
     print("most gold needed", max(gold_needed))
     print("least gold needed", min(gold_needed))
     print("average gold needed: ", sum(gold_needed)/len(gold_needed))
